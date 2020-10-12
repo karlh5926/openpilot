@@ -149,6 +149,9 @@ void *safety_setter_thread(void *s) {
   capnp::FlatArrayMessageReader cmsg(amsg);
   cereal::CarParams::Reader car_params = cmsg.getRoot<cereal::CarParams>();
 
+  LOGW("setting unsafe_mode for gas press");
+  usb_write(dev_handle, 0xdf, 9, 0, &usb_lock);
+
   int safety_model = int(car_params.getSafetyModel());
   auto safety_param = car_params.getSafetyParam();
   LOGW("setting safety model: %d with param %d", safety_model, safety_param);
