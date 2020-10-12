@@ -245,6 +245,7 @@ FW_VERSIONS = {
   },
   CAR.OUTBACK_PREGLOBAL: {
     # 2017 Outback Limited 3.6r - UDM / @Anthony
+    # 2017 Outback Limited 2.5 - UDM / @Mesta 50
     # 2016 Outback Limited 2.5 - UDM / @aeiro
     # 2015 Outback Limited 2.5 - ADM / @Bugsy
     # 2015 Outback Premium 3.6i - UDM / @aidrive
@@ -278,6 +279,7 @@ FW_VERSIONS = {
     ],
     (Ecu.engine, 0x7e0, None): [
       b'\xb4+@p\a',
+      b'\xb4\"@q\a',
       b'\xab\"@@\a',
       b'\xa0\x62\x41\x71\x07',
       b'\xa0*@q\a',
@@ -287,6 +289,7 @@ FW_VERSIONS = {
     ],
     (Ecu.transmission, 0x7e1, None): [
       b'\xbd\xfb\xe0\x80\x00',
+      b'\xbd\xf2@\x81\x00',
       b'\xbe\xf2@\x80\x00',
       b'\xbf\xe2\x40\x80\x00',
       b'\xbf\xf2@\x80\x00',
