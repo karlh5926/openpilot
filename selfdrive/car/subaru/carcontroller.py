@@ -33,7 +33,8 @@ class CarController():
 
     # *** steering ***
     if (frame % self.params.STEER_STEP) == 0:
-
+      if (frame % (self.params.STEER_STEP * 10)) == 0:
+        print("#### actuators.gas: ", actuators.gas)
       apply_steer = int(round(actuators.steer * self.params.STEER_MAX))
 
       # limits due to driver torque
@@ -56,6 +57,8 @@ class CarController():
     # *** alerts and pcm cancel ***
 
     if CS.CP.carFingerprint in PREGLOBAL_CARS:
+      if (frame % 100) == 0:
+        print("#### leadCar, obstacleDistance, cruiseSetSpeed: ", CS.leadCar, CS.obstacleDistance, CS.out.cruiseState.speed)
       if self.es_accel_cnt != CS.es_accel_msg["Counter"]:
         # 1 = main, 2 = set shallow, 3 = set deep, 4 = resume shallow, 5 = resume deep
         # disengage ACC when OP is disengaged

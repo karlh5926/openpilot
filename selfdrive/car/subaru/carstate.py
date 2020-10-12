@@ -111,6 +111,13 @@ class CarState(CarStateBase):
       self.button = cp_cam.vl["ES_CruiseThrottle"]["Button"]
       self.ready = not cp_cam.vl["ES_DashStatus"]["Not_Ready_Startup"]
       self.es_accel_msg = copy.copy(cp_cam.vl["ES_CruiseThrottle"])
+
+      if self.car_fingerprint in CAR.FORESTER_PREGLOBAL:
+        self.leadCar = False
+        self.obstacleDistance = 0.0
+      else:
+        self.leadCar = cp_cam.vl["ES_DashStatus"]["Lead_Car"] == 1
+        self.obstacleDistance = cp_cam.vl["ES_DashStatus"]["Obstacle_Distance"] * 5.0
     else:
       ret.steerError = cp.vl["Steering_Torque"]['Steer_Error_1'] == 1
       ret.steerWarning = cp.vl["Steering_Torque"]['Steer_Warning'] == 1
@@ -197,6 +204,8 @@ class CarState(CarStateBase):
       signals = [
         ("Cruise_Set_Speed", "ES_DashStatus", 0),
         ("Not_Ready_Startup", "ES_DashStatus", 0),
+        ("Lead_Car", "ES_DashStatus", 0),
+        ("Obstacle_Distance", "ES_DashStatus", 0),
 
         ("Throttle_Cruise", "ES_CruiseThrottle", 0),
         ("Signal1", "ES_CruiseThrottle", 0),
