@@ -14,6 +14,8 @@ class CarControllerParams():
     self.STEER_DRIVER_MULTIPLIER = 10  # weight driver torque heavily
     self.STEER_DRIVER_FACTOR = 1       # from dbc
 
+    self.THROTTLE_STEP = 2             # how often we update the steer cmd
+
 
 class CarController():
   def __init__(self, dbc_name, CP, VM):
@@ -53,12 +55,16 @@ class CarController():
 
       self.apply_steer_last = apply_steer
 
-
     # *** alerts and pcm cancel ***
-
     if CS.CP.carFingerprint in PREGLOBAL_CARS:
+      if (frame % self.params.THROTTLE_STEP) == 0:
+        block_accel = actuators.gas < 0.001
+        can_sends.append(subarucan.create_es_throttle_control(self.packer, 0, CS.es_accel_msg, block_accel))
+        can_sends.append(subarucan.create_es_rpm(self.packer, CS.es_rpm_msg, block_accel))
+
       if (frame % 100) == 0:
         print("#### leadCar, obstacleDistance, cruiseSetSpeed: ", CS.leadCar, CS.obstacleDistance, CS.out.cruiseState.speed)
+
       if self.es_accel_cnt != CS.es_accel_msg["Counter"]:
         # 1 = main, 2 = set shallow, 3 = set deep, 4 = resume shallow, 5 = resume deep
         # disengage ACC when OP is disengaged

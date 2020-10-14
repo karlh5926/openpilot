@@ -56,11 +56,24 @@ def create_preglobal_steering_control(packer, apply_steer, frame, steer_step):
 
   return packer.make_can_msg("ES_LKAS", 0, values)
 
-def create_es_throttle_control(packer, fake_button, es_accel_msg):
+def create_es_throttle_control(packer, fake_button, es_accel_msg, block_accel=False):
 
   values = copy.copy(es_accel_msg)
+  if block_accel:
+    values["Throttle_Cruise"] = 0
+
   values["Button"] = fake_button
 
   values["Checksum"] = subaru_preglobal_checksum(packer, values, "ES_CruiseThrottle")
 
   return packer.make_can_msg("ES_CruiseThrottle", 0, values)
+
+def create_es_rpm(packer, es_rpm_msg, block_accel):
+
+  values = copy.copy(es_rpm_msg)
+  if block_accel:
+    values["RPM"] = 0
+
+  values["Checksum"] = subaru_preglobal_checksum(packer, values, "ES_RPM")
+
+  return packer.make_can_msg("ES_RPM", 0, values)

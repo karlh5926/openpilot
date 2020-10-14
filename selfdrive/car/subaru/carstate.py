@@ -91,15 +91,6 @@ class CarState(CarStateBase):
 
     # EDM Global: mph = 1, 2; All Outback: mph = 1, UDM Forester: mph = 7
 
-    if self.car_fingerprint in [CAR.ASCENT, CAR.FORESTER, CAR.IMPREZA, CAR.OUTBACK_PREGLOBAL, CAR.OUTBACK_PREGLOBAL_2018]:
-      if cp.vl["Dash_State"]['Units'] in [1, 2, 7]:
-        ret.cruiseState.speed *= CV.MPH_TO_KPH
-
-    # UDM Forester, Legacy: mph = 0
-    elif self.car_fingerprint in [CAR.FORESTER_PREGLOBAL, CAR.LEGACY_PREGLOBAL]:
-      if (cp.vl["Dash_State"]['Units'] == 0):
-        ret.cruiseState.speed *= CV.MPH_TO_KPH
-
     ret.seatbeltUnlatched = cp.vl["Dashlights"]['SEATBELT_FL'] == 1
     ret.doorOpen = any([cp.vl["BodyInfo"]['DOOR_OPEN_RR'],
                         cp.vl["BodyInfo"]['DOOR_OPEN_RL'],
@@ -111,6 +102,7 @@ class CarState(CarStateBase):
       self.button = cp_cam.vl["ES_CruiseThrottle"]["Button"]
       self.ready = not cp_cam.vl["ES_DashStatus"]["Not_Ready_Startup"]
       self.es_accel_msg = copy.copy(cp_cam.vl["ES_CruiseThrottle"])
+      self.es_rpm_msg = copy.copy(cp_cam.vl["ES_RPM"])
 
       if self.car_fingerprint in CAR.FORESTER_PREGLOBAL:
         self.leadCar = False
@@ -214,7 +206,7 @@ class CarState(CarStateBase):
         ("Brake_On", "ES_CruiseThrottle", 0),
         ("DistanceSwap", "ES_CruiseThrottle", 0),
         ("Standstill", "ES_CruiseThrottle", 0),
-        ("Signal3", "ES_CruiseThrottle", 0),
+        ("Brake", "ES_CruiseThrottle", 0),
         ("CloseDistance", "ES_CruiseThrottle", 0),
         ("Signal4", "ES_CruiseThrottle", 0),
         ("Standstill_2", "ES_CruiseThrottle", 0),
@@ -224,11 +216,17 @@ class CarState(CarStateBase):
         ("Signal6", "ES_CruiseThrottle", 0),
         ("Button", "ES_CruiseThrottle", 0),
         ("Signal7", "ES_CruiseThrottle", 0),
+
+        ("Brake", "ES_RPM", 0),
+        ("Cruise_Activated", "ES_RPM", 0),
+        ("RPM", "ES_RPM", 0),
+        ("Counter", "ES_RPM", 0),
       ]
 
       checks = [
         ("ES_DashStatus", 20),
         ("ES_CruiseThrottle", 20),
+        ("ES_RPM", 20),
       ]
     else:
       signals = [
