@@ -1,3 +1,4 @@
+from common.numpy_fast import clip
 from selfdrive.car import apply_std_steer_torque_limits
 from selfdrive.car.subaru import subarucan
 from selfdrive.car.subaru.values import DBC, PREGLOBAL_CARS
@@ -14,6 +15,22 @@ class CarControllerParams():
     self.STEER_DRIVER_MULTIPLIER = 10  # weight driver torque heavily
     self.STEER_DRIVER_FACTOR = 1       # from dbc
 
+    self.RPM_MIN = 0                   # min cruise_rpm
+    self.RPM_MAX = 3200                # max cruise_rpm
+    self.RPM_BASE = 600                # cruise_rpm idle, from stock drive
+    self.RPM_SCALE = 3000              # cruise_rpm, from testing
+
+    self.THROTTLE_MIN = 0              # min cruise_throttle
+    self.THROTTLE_MAX = 3400           # max cruise_throttle
+    self.THROTTLE_BASE = 1818          # cruise_throttle, from stock drive
+    self.THROTTLE_SCALE = 3000         # from testing
+
+    self.RPM_DELTA_UP = 30
+    self.RPM_DELTA_DOWN = 50
+
+    self.THROTTLE_DELTA_UP = 30
+    self.THROTTLE_DELTA_DOWN = 50
+
 class CarController():
   def __init__(self, dbc_name, CP, VM):
     self.apply_steer_last = 0
@@ -23,6 +40,9 @@ class CarController():
     self.es_lkas_cnt = -1
     self.fake_button_prev = 0
     self.steer_rate_limited = False
+
+    self.cruise_rpm_last = 0
+    self.cruise_throttle_last = 0
 
     self.params = CarControllerParams()
     self.packer = CANPacker(DBC[CP.carFingerprint]['pt'])
@@ -59,10 +79,18 @@ class CarController():
       if (frame % 100) == 0:
         print("#### leadCar, obstacleDistance, cruiseSetSpeed: ", CS.leadCar, CS.obstacleDistance, CS.out.cruiseState.speed)
         
+      cruise_throttle = CS.es_accel_msg["Throttle_Cruise"]
+      cruise_rpm = CS.es_rpm_msg["RPM"]
+
+      P = self.params
+      # slow down the signals change
+      cruise_throttle = clip(cruise_throttle, self.cruise_throttle_last - P.THROTTLE_DELTA_DOWN, self.cruise_throttle_last + P.THROTTLE_DELTA_UP)
+      cruise_rpm = clip(cruise_rpm, self.cruise_rpm_last - P.RPM_DELTA_DOWN, self.cruise_rpm_last + P.RPM_DELTA_UP)
+
       if self.es_rpm_cnt != CS.es_rpm_msg["Counter"]:
-        block_accel = actuators.gas < 0.001
-        can_sends.append(subarucan.create_es_rpm(self.packer, CS.es_rpm_msg, block_accel))
+        can_sends.append(subarucan.create_es_rpm(self.packer, CS.es_rpm_msg, cruise_rpm))
         self.es_rpm_cnt = CS.es_rpm_msg["Counter"]
+        self.cruise_rpm_last = cruise_rpm
 
       if self.es_accel_cnt != CS.es_accel_msg["Counter"]:
         # 1 = main, 2 = set shallow, 3 = set deep, 4 = resume shallow, 5 = resume deep
@@ -80,9 +108,9 @@ class CarController():
           fake_button = 0
         self.fake_button_prev = fake_button
 
-        block_accel = actuators.gas < 0.001
-        can_sends.append(subarucan.create_es_throttle_control(self.packer, fake_button, CS.es_accel_msg, block_accel))
+        can_sends.append(subarucan.create_es_throttle_control(self.packer, CS.es_accel_msg, fake_button, cruise_throttle))
         self.es_accel_cnt = CS.es_accel_msg["Counter"]
+        self.cruise_throttle_last = cruise_throttle
 
     else:
       if self.es_distance_cnt != CS.es_distance_msg["Counter"]:
