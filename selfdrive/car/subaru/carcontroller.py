@@ -20,13 +20,13 @@ class CarControllerParams():
     self.RPM_BASE = 600                # cruise_rpm idle, from stock drive
     self.RPM_SCALE = 3000              # cruise_rpm, from testing
 
+    self.RPM_DELTA_UP = 30
+    self.RPM_DELTA_DOWN = 50
+
     self.THROTTLE_MIN = 0              # min cruise_throttle
     self.THROTTLE_MAX = 3400           # max cruise_throttle
     self.THROTTLE_BASE = 1818          # cruise_throttle, from stock drive
     self.THROTTLE_SCALE = 3000         # from testing
-
-    self.RPM_DELTA_UP = 30
-    self.RPM_DELTA_DOWN = 50
 
     self.THROTTLE_DELTA_UP = 30
     self.THROTTLE_DELTA_DOWN = 50
